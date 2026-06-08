@@ -25,13 +25,16 @@ templates, ejemplos o scripts de apoyo).
   ...             # opcional: templates/, examples/, scripts
 ```
 
-El `SKILL.md` lleva en su frontmatter el nombre, la versión y la descripción:
+El `SKILL.md` sigue el [formato Agent Skills](https://agentskills.io/specification):
+`name` y `description` son obligatorios; la versión va dentro de `metadata`
+(campo opcional del estándar) como string:
 
 ```yaml
 ---
 name: commit
-version: 1.0.0
 description: ...
+metadata:
+  version: "1.0.0"
 ---
 ```
 
@@ -50,8 +53,8 @@ Cada skill se versiona de forma **independiente** con
 
 Cuando modifiques una skill:
 
-1. Sube la versión en el `version:` del frontmatter del `SKILL.md` según la tabla
-   de arriba.
+1. Sube la versión en `metadata.version` del frontmatter del `SKILL.md` según la
+   tabla de arriba.
 2. Agrega una entrada arriba de todo en el `CHANGELOG.md` de esa skill:
    ```markdown
    ## 1.1.0 - AAAA-MM-DD

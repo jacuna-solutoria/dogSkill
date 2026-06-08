@@ -1,6 +1,7 @@
 ---
 name: definir-spec
-version: 1.0.0
+metadata:
+  version: "1.0.0"
 description: >-
   Definir una especificación (spec) a partir de una historia de usuario, o un
   spec de fix para un bug/corrección. Rellena un template, muestra en un listado

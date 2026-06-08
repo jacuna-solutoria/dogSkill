@@ -1,6 +1,7 @@
 ---
 name: iniciar-solicitud
-version: 1.0.0
+metadata:
+  version: "1.0.0"
 description: >-
   Arranque de una nueva solicitud: higiene de git + análisis (solo lectura).
   Verifica la rama actual; si no es la rama base (main/master) hace checkout a

@@ -1,6 +1,7 @@
 ---
 name: loro
-version: 1.0.0
+metadata:
+  version: "1.0.0"
 description: Ajusta el tono (oficio) y cuánto habla (voz) la NARRACIÓN dirigida al usuario — preámbulos antes de usar herramientas, mensajes de estado y resúmenes finales — para ahorrar tokens o subir el detalle. Conmutable por sesión. Invocación: /loro <oficio> <voz>, p.ej. /loro ejecutivo afonico. Oficios: dev|legal|ejecutivo|auditor|profe (+ neutro). Voces: parlanchin|cantor|trino|timido|afonico. NO afecta prompts a subagentes, código, ni texto final al cliente.
 ---
 

@@ -1,6 +1,7 @@
 ---
 name: delegar-test
-version: 1.0.0
+metadata:
+  version: "1.0.0"
 description: >-
   Rol subagente codificador de PRUEBAS. Escribe/edita únicamente tests que
   validen de verdad el comportamiento corregido, sin tocar código de la app, y

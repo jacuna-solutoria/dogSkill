@@ -1,6 +1,7 @@
 ---
 name: delegar-codigo
-version: 1.0.0
+metadata:
+  version: "1.0.0"
 description: >-
   Rol orquestador/delegador para delegar el CÓDIGO de un cambio. El orquestador
   NO escribe código fuente: delega SIEMPRE el código a un subagente codificador

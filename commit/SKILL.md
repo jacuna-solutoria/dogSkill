@@ -1,6 +1,7 @@
 ---
 name: commit
-version: 1.0.0
+metadata:
+  version: "1.0.0"
 description: Crear un commit de git con formato de 3 mensajes (-m), con push opcional. Usar cuando el usuario pida hacer un commit ("haz commit", "/commit", "commitea esto", "commit push"). El commit lleva un título corto, un cuerpo con los hitos modificados, y notas adicionales opcionales. Hace push a remoto solo si el usuario lo indica explícitamente.
 ---
 

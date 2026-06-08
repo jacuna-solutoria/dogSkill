@@ -1,6 +1,7 @@
 ---
 name: revisar-coderabbit
-version: 1.0.0
+metadata:
+  version: "1.0.0"
 description: >-
   Triaje y cierre de las observaciones de CodeRabbit en un PR/merge request a
   partir de su URL. Parte 1: por cada observación valida si aplica y la encamina
