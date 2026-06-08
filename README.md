@@ -13,7 +13,6 @@ templates, ejemplos o scripts de apoyo).
 | [`delegar-codigo`](delegar-codigo/) | 1.0.0 | Rol orquestador: delega el código de un cambio a un subagente codificador (no escribe código ni tests directamente). |
 | [`delegar-test`](delegar-test/) | 1.0.0 | Rol subagente de pruebas: escribe/edita solo tests que validan el comportamiento corregido y corre la suite. |
 | [`iniciar-solicitud`](iniciar-solicitud/) | 1.0.1 | Arranque de una solicitud: higiene de git + análisis de solo lectura; crea la rama de trabajo recién tras aprobación. |
-| [`loro`](loro/) | 1.0.1 | Ajusta el tono y la verbosidad de la narración dirigida al usuario, por sesión. |
 | [`revisar-coderabbit`](revisar-coderabbit/) | 1.0.0 | Triaje y cierre de las observaciones de CodeRabbit en un PR a partir de su URL. |
 
 ## Estructura de una skill
