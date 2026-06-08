@@ -1,7 +1,7 @@
 ---
 name: definir-spec
 metadata:
-  version: "1.0.0"
+  version: "1.0.1"
 description: >-
   Definir una especificación (spec) a partir de una historia de usuario, o un
   spec de fix para un bug/corrección. Rellena un template, muestra en un listado
@@ -39,7 +39,7 @@ numeración entre una spec y otra. Solo cambia el **contenido**, no el formato:
 
 **Nombre del archivo:** siempre con slug. `yyyymmdd-<slug-kebab>-spec.md` para
 feature; `yyyymmdd-<slug-kebab>-fix.md` para corrección de bug (fecha compacta
-sin guiones, ej. `20260608-portal-arsopb-representacion-spec.md`).
+sin guiones, ej. `20260101-login-email-password-spec.md`).
 
 **Tipo de spec:**
 - **Feature** — nace de una historia de usuario; usa el template "Feature".

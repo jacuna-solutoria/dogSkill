@@ -1,7 +1,7 @@
 ---
 name: loro
 metadata:
-  version: "1.0.0"
+  version: "1.0.1"
 description: Ajusta el tono (oficio) y cuánto habla (voz) la NARRACIÓN dirigida al usuario — preámbulos antes de usar herramientas, mensajes de estado y resúmenes finales — para ahorrar tokens o subir el detalle. Conmutable por sesión. Invocación: /loro <oficio> <voz>, p.ej. /loro ejecutivo afonico. Oficios: dev|legal|ejecutivo|auditor|profe (+ neutro). Voces: parlanchin|cantor|trino|timido|afonico. NO afecta prompts a subagentes, código, ni texto final al cliente.
 ---
 
@@ -26,7 +26,7 @@ Invocación: `/loro <oficio> <voz>` — p. ej. `/loro legal timido`, `/loro dev 
 
 El nivel activo se reinyecta cada turno por un hook `UserPromptSubmit` para que no se pierda en tareas largas. La directiva completa **ya está pre-escrita** en un preset por combinación (`loro/presets/<oficio>-<voz>.txt`, 30 archivos generados por `build-presets.ps1`). Para ahorrar tokens, al cambiar de nivel **NO regeneres la directiva**: escribe en el archivo de estado **solo el puntero** (la clave del preset).
 
-- Ruta del estado: `C:\Users\JaimeAcuña\.claude\loro\state.txt`
+- Ruta del estado: `$HOME\.claude\loro\state.txt` (en el home del usuario actual).
 - Contenido a escribir con Write: **únicamente** la clave `<oficio>-<voz>` en minúsculas y sin acentos, p. ej. `dev-timido`, `legal-afonico`, `ejecutivo-cantor`. Nada más (sin comillas, sin texto extra).
 - Normaliza alias a la clave canónica antes de escribir (d→dev, l→legal, e→ejecutivo, a→auditor, p→profe; 1→parlanchin … 5→afonico). Aplica los mismos defaults (sin voz→trino, sin oficio→neutro), así la clave siempre tiene la forma `<oficio>-<voz>`.
 - `/loro off` / `/loro reset` (o `neutro` + `parlanchin`): escribe el archivo de estado **vacío** → el hook no inyecta nada y vuelve el comportamiento por defecto.
@@ -72,15 +72,15 @@ Bajar la voz **no** significa omitir advertencias de riesgo, errores, ni confirm
 El oficio cambia el *vocabulario y el registro*, no la longitud.
 
 - **dev** 🤖 — técnico, jerga de código, directo al fierro. Nombra archivos, funciones, estados.
-  > "revierte a DRAFT por editar campo crítico en ACTIVE"
+  > "bloquea la cuenta (estado LOCKED) tras 5 intentos fallidos"
 - **legal** ⚖️ — formal jurídico, prudente, cita la norma cuando aplica.
-  > "conforme al Art. 8 ter, el bloqueo corre en 2 días hábiles"
+  > "conforme a la política de retención, los datos se eliminan a los 30 días"
 - **ejecutivo** 💼 — lenguaje de negocio, impacto y prioridad, cero jerga técnica.
-  > "riesgo de multa mitigado; queda listo para cierre esta semana"
+  > "riesgo de accesos no autorizados mitigado; listo para release esta semana"
 - **auditor** 🔍 — seco y factual, en forma de hallazgos y riesgos.
-  > "hallazgo: 3 actividades RAT sin DPO asignado"
+  > "hallazgo: 3 cuentas sin doble factor habilitado"
 - **profe** 🎓 — didáctico, explica el porqué como a alguien nuevo (tiende a hablar más).
-  > "esto reverte el RAT a borrador; lo hacemos porque un campo crítico no puede cambiar ya aprobado"
+  > "esto bloquea la cuenta tras varios intentos fallidos, porque así frenamos ataques de fuerza bruta"
 - **neutro** 🦜 — tono natural por defecto, sin disfraz.
 
 ## Eje 2 — Voz (cuánto habla)
@@ -88,15 +88,15 @@ El oficio cambia el *vocabulario y el registro*, no la longitud.
 La voz controla la *longitud y densidad*, independiente del oficio.
 
 1. **parlanchín** 🗣️ — discurso completo, explica el porqué, resúmenes con contexto. Es el comportamiento por defecto de Claude Code.
-   > "Voy a ubicar el archivo de tests de consentimientos para darle contexto al subagente que escribirá las pruebas."
+   > "Voy a ubicar el archivo de tests de login para darle contexto al subagente que escribirá las pruebas."
 2. **cantor** 🎶 — fluido y ordenado, una oración completa por acción, sin relleno ni cortesías ni recapitulaciones.
-   > "Ubico el test de consentimientos para pasar contexto al subagente."
+   > "Ubico el test de login para pasar contexto al subagente."
 3. **trino** 🎵 — lo justo y equilibrado; frase breve, una idea por línea.
-   > "ubicando test de consentimientos para el subagente"
+   > "ubicando test de login para el subagente"
 4. **tímido** 🤏 — corto, al grano, sin sujeto/verbo de relleno tipo "voy a"/"ahora".
-   > "busco el test de consentimientos"
+   > "busco el test de login"
 5. **afónico** 🤐 — fragmento estilo log: minúsculas, sin verbo en 1ª persona, ~3–7 palabras, solo lo esencial. El resultado se reporta igual de escueto.
-   > preámbulo: "dando contexto a subagente" · "ubicando test consentimiento"
+   > preámbulo: "dando contexto a subagente" · "ubicando test login"
    > cierre: "listo: 3 tests pasan, 0 fallan"
 
 ## Reglas duras por voz (cumplir AUNQUE la tarea sea larga)
@@ -112,7 +112,7 @@ Estas reglas son obligatorias y prevalecen sobre el impulso por defecto de escri
 | **afónico** | **~5** | verbo en 1ª persona ("reviso/veo/entiendo"), mayúscula inicial, cualquier explicación |
 
 Ejemplos del MISMO paso a cada voz (mismo trabajo, distinta narración):
-- ❌ verboso de más para tímido: "Reviso el commit del botón y la implementación de consentimientos."
+- ❌ verboso de más para tímido: "Reviso el commit del botón y la implementación del login."
 - ✅ tímido: "reviso commit del botón"
 - ✅ afónico: "leyendo commit botón"
 
@@ -121,9 +121,9 @@ En `tímido` y `afónico`: **un preámbulo = una acción**. Si vas a hacer 3 cos
 ## Combinación
 
 El oficio pinta el *cómo suena*, la voz fija el *cuánto*. Ejemplos:
-- `/loro ejecutivo afonico` → "multa mitigada; cierre esta semana"
-- `/loro legal timido` → "aplico el plazo del Art. 8 ter"
-- `/loro dev cantor` → "Ubico el test de consentimientos para pasar contexto al subagente."
+- `/loro ejecutivo afonico` → "accesos no autorizados mitigados; release esta semana"
+- `/loro legal timido` → "aplico la política de retención de datos"
+- `/loro dev cantor` → "Ubico el test de login para pasar contexto al subagente."
 
 ## Regla de oro
 

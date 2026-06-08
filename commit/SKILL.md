@@ -1,7 +1,7 @@
 ---
 name: commit
 metadata:
-  version: "1.0.0"
+  version: "1.0.1"
 description: Crear un commit de git con formato de 3 mensajes (-m), con push opcional. Usar cuando el usuario pida hacer un commit ("haz commit", "/commit", "commitea esto", "commit push"). El commit lleva un título corto, un cuerpo con los hitos modificados, y notas adicionales opcionales. Hace push a remoto solo si el usuario lo indica explícitamente.
 ---
 
@@ -55,7 +55,7 @@ git commit -m "<título>" -m "<cuerpo de hitos>" -m "<notas adicionales>"
 - Mantenerlo conciso: un hito = una línea corta, sin párrafos largos.
 
 ### `-m` #3 — Notas adicionales (OPCIONAL)
-- Solo si hay algo relevante que agregar: dependencias, follow-ups, breaking changes, contexto de la tarea (ej. ID DogMind), advertencias de migración.
+- Solo si hay algo relevante que agregar: dependencias, follow-ups, breaking changes, contexto de la tarea (ej. ID del ticket), advertencias de migración.
 - Si no hay nada que anotar, **omitir este tercer `-m`** por completo (no poner uno vacío).
 
 ## Flujo
@@ -73,30 +73,30 @@ git commit -m "<título>" -m "<cuerpo de hitos>" -m "<notas adicionales>"
 
 ## Ejemplo
 
-Cambios: se arregló un cálculo de plazos en brechas, se agregó un campo nuevo al formulario y se actualizó un template.
+Cambios: se corrigió la validación de la contraseña en el login, se agregó un campo nuevo al formulario y se actualizó un template.
 
 ### En PowerShell (Windows)
 
 Usar here-strings de comilla simple para los `-m` multilínea:
 
 ```powershell
-git commit -m "fix(brechas): corrige calculo de plazos y agrega campo origen" -m @'
-se corrige el calculo de plazo legal de notificacion de brechas
-se agrega el campo "origen" al formulario de incidente
-se actualiza el template _breach_form.html con el nuevo campo
+git commit -m "fix(login): corrige validacion y agrega campo recordarme" -m @'
+se corrige la validacion de la contrasena en el inicio de sesion
+se agrega el campo "recordarme" al formulario de login
+se actualiza el template login_form.html con el nuevo campo
 '@ -m @'
-Requiere migracion para la columna origin_type (ver runbook).
-Tarea DogMind #17942.
+Requiere migracion para la columna remember_token (ver runbook).
+Tarea #1234.
 '@
 ```
 
 ### En Bash
 
 ```bash
-git commit -m "fix(brechas): corrige calculo de plazos y agrega campo origen" -m "se corrige el calculo de plazo legal de notificacion de brechas
-se agrega el campo \"origen\" al formulario de incidente
-se actualiza el template _breach_form.html con el nuevo campo" -m "Requiere migracion para la columna origin_type (ver runbook).
-Tarea DogMind #17942."
+git commit -m "fix(login): corrige validacion y agrega campo recordarme" -m "se corrige la validacion de la contrasena en el inicio de sesion
+se agrega el campo \"recordarme\" al formulario de login
+se actualiza el template login_form.html con el nuevo campo" -m "Requiere migracion para la columna remember_token (ver runbook).
+Tarea #1234."
 ```
 
 ## Errores comunes

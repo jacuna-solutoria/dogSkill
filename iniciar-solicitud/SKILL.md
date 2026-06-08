@@ -1,7 +1,7 @@
 ---
 name: iniciar-solicitud
 metadata:
-  version: "1.0.0"
+  version: "1.0.1"
 description: >-
   Arranque de una nueva solicitud: higiene de git + análisis (solo lectura).
   Verifica la rama actual; si no es la rama base (main/master) hace checkout a
@@ -88,10 +88,10 @@ git checkout -b "T#<solicitud>-<nombre-corto>"
 ```
 
 Convención del nombre:
-- `T#<solicitud>` = número de la solicitud/tarea (ej. `T#17455`).
+- `T#<solicitud>` = número de la solicitud/tarea (ej. `T#1234`).
 - `<nombre-corto>` = descripción breve en **kebab-case**, sin tildes ni espacios
-  (ej. `correccion-estado-proveedores-dpa`).
-- Ejemplo completo: `T#17455-correccion-estado-proveedores-dpa`.
+  (ej. `login-con-correo-y-contrasena`).
+- Ejemplo completo: `T#1234-login-con-correo-y-contrasena`.
 
 ## Notas
 
