@@ -9,7 +9,7 @@ description: >-
   cliente y la nota de bitácora, sin registrar en ningún sistema externo. Usar
   cuando llega una solicitud/ticket para analizar o para analizar y resolver.
 metadata:
-  version: "1.0.0"
+  version: "1.0.1"
 ---
 
 # Analizar (y opcionalmente resolver) una solicitud
@@ -42,7 +42,8 @@ Tu tarea es **solo analizar**: no modifiques código, no crees ramas, no hagas c
 
 ### Pre-requisito de rama
 Valida que estás en la rama base (`main`/`master`). Si **no** lo estás, **detén
-el análisis** y pide al usuario que actualice el repositorio/rama. No crees ramas.
+el análisis** y pide al usuario que actualice el repositorio/rama (la higiene de
+git la cubre la skill `iniciar-solicitud`). No crees ramas.
 
 ### Objetivo
 - Revisar la solicitud en el sistema y en el código.
@@ -138,14 +139,14 @@ ejecutar esa decisión.
   **`CLAUDE.md`**.
 
 ### Criterio de acción
-- Crea una **rama nueva** con referencia a la solicitud, en español, sin tildes ni
-  caracteres especiales, con formato `T#{numero}-{nombre-corto-rama}`.
+- Crea una **rama nueva** de trabajo con la convención `T#{numero}-{nombre-corto}`
+  (ver la skill `iniciar-solicitud` para la convención de rama y la higiene de git).
 - Aplica **solo** los cambios definidos en el análisis.
 - Si el cambio es solo visual, **no toques** lógica, persistencia, validaciones,
   estados, procesos ni integraciones.
 - **Valida** el cambio realizado.
-- Realiza un **commit en español** detallado, con al menos tres `-m`: título breve
-  (máx 70 caracteres), detalle 1, detalle 2. (Mismo formato que la skill `commit`.)
+- Realiza el **commit** con la skill `commit`. Si esa skill no está disponible,
+  haz un commit normal en español, sin un formato detallado.
 - Genera un **texto final para el cliente** en párrafos normales, claro y poco
   técnico.
 
@@ -174,10 +175,9 @@ ejecutar esa decisión.
 {saludo / firma} — Equipo {Fábrica | Proyectos} · {Kulvio | TareOn}
 ```
 
-### Salida final por consola (NO registrar en ningún sistema)
+### Salida final por consola
 
-Al terminar, **imprime por consola al usuario** estos dos bloques. No los guardes
-en bitácora, DogMind ni ninguna herramienta externa: son solo para mostrarse aquí.
+Al terminar, **imprime por consola al usuario** estos dos bloques.
 
 ```
 Nota — acción ejecutada:
@@ -194,7 +194,4 @@ Nota — texto final cliente:
 ## Notas
 - La Fase 1 nunca modifica código; la Fase 2 solo corre si el análisis la
   recomienda y respeta su clasificación.
-- Esta skill **reemplaza el registro en bitácora/DogMind** del flujo original por
-  una **salida por consola**: no escribe en ningún sistema externo.
-- Para la mecánica de commit (y push si se pide), ver la skill `commit`.
 - Mantener español (Chile), con acentos correctos.
