@@ -8,6 +8,7 @@ templates, ejemplos o scripts de apoyo).
 
 | Skill | Versión | Qué hace |
 |-------|---------|----------|
+| [`analizar-solicitud`](analizar-solicitud/) | 1.0.0 | Analiza una solicitud (clasifica y detalla, solo lectura) y, si corresponde, la implementa en una rama y entrega por consola el commit y el texto para el cliente, sin registrar en sistemas externos. |
 | [`commit`](commit/) | 1.0.1 | Crea un commit de git con formato de 3 mensajes (`-m`), con push opcional. |
 | [`definir-spec`](definir-spec/) | 1.0.1 | Convierte una historia de usuario (o un bug) en una especificación, validando asunciones una a una. Incluye templates, ejemplo y generador de PDF. |
 | [`delegar-codigo`](delegar-codigo/) | 1.0.0 | Rol orquestador: delega el código de un cambio a un subagente codificador (no escribe código ni tests directamente). |
