@@ -4,3 +4,6 @@ config.env
 # Cache de Python.
 __pycache__/
 *.pyc
+
+# Imagenes descargadas de tickets (no commitear adjuntos de clientes).
+descargas/

@@ -1,7 +1,7 @@
 ---
 name: leer-solicitudes-freescout
 metadata:
-  version: "1.0.1"
+  version: "1.1.0"
 description: >-
   Lee por scraping (solo lectura) las solicitudes/tickets PENDIENTES de una
   casilla de FreeScout, por defecto "SOL - Fabrica". Inicia sesion, recorre las
@@ -16,7 +16,9 @@ description: >-
 
 Esta skill scrapea (HTML, **solo lectura**) una casilla de **FreeScout** y lista
 sus **solicitudes pendientes**. Por defecto revisa la casilla **"SOL - Fabrica"**.
-No escribe nada en FreeScout ni en ningun otro sistema y no descarga adjuntos.
+Tambien trae el **detalle completo** de un ticket y **descarga sus imagenes**
+(ver Paso 3). No escribe nada en FreeScout ni en ningun otro sistema: es **solo
+lectura**.
 
 Es **global**: las credenciales se guardan **junto a la skill**, asi el mismo
 acceso funciona desde cualquier proyecto. Sigue el mismo patron que
@@ -79,6 +81,35 @@ python freescout_pendientes.py --folders "No asignado,Asignado"   # otras carpet
 python freescout_pendientes.py --detalle         # agrega descripcion corta (1 GET extra por ticket)
 python freescout_pendientes.py --limit 20        # tope de solicitudes
 ```
+
+## Paso 3 — Detalle completo de un ticket (con imagenes)
+
+Para analizar una solicitud a fondo: trae el **contenido completo** de los
+mensajes (sin truncar) y **descarga las imagenes** (inline y adjuntas) a una
+carpeta local para poder verlas.
+
+```
+python freescout_pendientes.py --ticket 18113
+```
+
+Resuelve el numero buscandolo en las carpetas de la casilla (primero las
+pendientes, luego todas). Tambien acepta la URL directa del ticket:
+
+```
+python freescout_pendientes.py --ticket https://mesa.solutoria.help/conversation/18113
+```
+
+Opciones:
+
+```
+python freescout_pendientes.py --ticket 18113 --json     # detalle + rutas de imagenes en JSON
+python freescout_pendientes.py --ticket 18113 --out ./adjuntos   # carpeta destino de las imagenes
+```
+
+Las imagenes se guardan por defecto en `descargas/<numero>/` **junto a la skill**
+(ignorado por git; son adjuntos de clientes). El comando imprime las rutas
+locales para que el agente las abra con la herramienta de lectura. Solo guarda lo
+que el servidor responde como `image/*`.
 
 ## Como funciona el scraping (resumen)
 

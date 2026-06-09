@@ -30,7 +30,7 @@ import re
 import sys
 import unicodedata
 from pathlib import Path
-from urllib.parse import urljoin
+from urllib.parse import urljoin, urlparse
 
 try:
     import requests
@@ -47,6 +47,13 @@ PENDING_FOLDERS = ["No asignado", "Propio", "Asignado"]
 
 CONV_HREF_RE = re.compile(r"/conversation/(\d+)")
 NUMBER_RE = re.compile(r"#?\s*(\d{2,})")
+IMG_EXT_RE = re.compile(r"\.(png|jpe?g|gif|bmp|webp|svg|tiff?)(\?|$)", re.I)
+# Extension por content-type cuando la URL no la trae (rutas de descarga de FreeScout).
+CT_EXT = {
+    "image/png": ".png", "image/jpeg": ".jpg", "image/gif": ".gif",
+    "image/bmp": ".bmp", "image/webp": ".webp", "image/svg+xml": ".svg",
+    "image/tiff": ".tiff",
+}
 
 
 # --- configuracion --------------------------------------------------------
@@ -234,7 +241,184 @@ def fetch_descripcion(session, url: str, max_chars: int = 240) -> str:
     return (text[:max_chars] + "...") if len(text) > max_chars else text
 
 
+# --- FreeScout: detalle completo de un ticket -----------------------------
+
+def all_folders(session, base_url: str, mailbox_id: str) -> list[tuple[str, str]]:
+    """Todas las carpetas de la casilla (no solo las pendientes). Sirve para
+    resolver el numero de un ticket que puede estar en cualquier carpeta."""
+    r = session.get(f"{base_url}/mailbox/{mailbox_id}", timeout=30)
+    r.raise_for_status()
+    soup = BeautifulSoup(r.text, "html.parser")
+    folders: dict[str, str] = {}
+    for a in soup.find_all("a", href=re.compile(rf"/mailbox/{mailbox_id}/-?\d+")):
+        m = re.search(rf"/mailbox/{mailbox_id}/(-?\d+)", a["href"])
+        name = a.get_text(" ", strip=True)
+        if m and name:
+            folders.setdefault(m.group(1), name)
+    return [(name, f"{base_url}/mailbox/{mailbox_id}/{fid}") for fid, name in folders.items()]
+
+
+def resolve_ticket_url(session, base_url: str, mailbox_id: str, ticket: str,
+                       pending: list[tuple[str, str]]) -> str | None:
+    """Convierte un numero de ticket en su URL `/conversation/<id>`. Si ya viene
+    una URL, la devuelve tal cual. Busca primero en las carpetas pendientes y,
+    si no aparece, en todas las carpetas de la casilla."""
+    if ticket.startswith("http"):
+        return ticket
+    wanted = str(ticket).lstrip("#").strip()
+    for folders in (pending, all_folders(session, base_url, mailbox_id)):
+        for conv in collect(session, base_url, folders):
+            if conv["number"] == wanted:
+                return conv["url"]
+    return None
+
+
+def _thread_text(node) -> str:
+    """Texto del cuerpo de un mensaje conservando saltos de linea/parrafos."""
+    for br in node.find_all("br"):
+        br.replace_with("\n")
+    text = node.get_text("\n", strip=True)
+    return re.sub(r"\n{3,}", "\n\n", text).strip()
+
+
+def fetch_detalle(session, base_url: str, url: str) -> dict:
+    """Detalle COMPLETO de un ticket: asunto, cliente, todos los mensajes (texto
+    completo) y la lista de URLs de imagenes (inline + adjuntas) para descargar."""
+    r = session.get(url, timeout=30)
+    r.raise_for_status()
+    soup = BeautifulSoup(r.text, "html.parser")
+
+    subject = ""
+    for sel in (".conv-subject-text", ".conv-subject", "h1", "title"):
+        el = soup.select_one(sel)
+        if el and el.get_text(strip=True):
+            subject = el.get_text(" ", strip=True)
+            break
+
+    customer = ""
+    cust = soup.select_one(".conv-customer .customer-name, .customer-name, .conv-customer")
+    if cust:
+        customer = cust.get_text(" ", strip=True)
+
+    threads: list[dict] = []
+    img_urls: list[str] = []
+    seen_imgs: set[str] = set()
+    thread_nodes = soup.select(".thread") or soup.select(".thread-content")
+    for th in thread_nodes:
+        # Salta los eventos de actividad (asignaciones, workflows, cambios de
+        # estado): son line-items de FreeScout, no mensajes reales.
+        classes = th.get("class") or []
+        if any("lineitem" in c for c in classes):
+            continue
+        body = th.select_one(".thread-content") or th.select_one(".thread-body") or th
+        author = ""
+        a_el = th.select_one(".thread-person, .thread-by, .thread-author")
+        if a_el:
+            author = a_el.get_text(" ", strip=True)
+        date = ""
+        d_el = th.select_one(".thread-date, time")
+        if d_el:
+            date = d_el.get("title") or d_el.get_text(" ", strip=True)
+        text = _thread_text(body)
+        if not text and not th.select("img, a[href]"):
+            continue
+        threads.append({"author": author, "date": date, "text": text})
+
+        # imagenes inline dentro del cuerpo del mensaje
+        for img in body.find_all("img"):
+            src = img.get("src") or img.get("data-src")
+            if src and not src.startswith("data:") and src not in seen_imgs:
+                seen_imgs.add(src)
+                img_urls.append(src)
+        # adjuntos (links): toma los que parecen imagen por extension o por clase
+        for a in th.select(".attachments a[href], .thread-attachments a[href], a.attachment-link"):
+            href = a["href"]
+            if href in seen_imgs:
+                continue
+            if IMG_EXT_RE.search(href) or "image" in (a.get("class") or []):
+                seen_imgs.add(href)
+                img_urls.append(href)
+
+    return {
+        "url": url,
+        "subject": subject or "(sin asunto)",
+        "customer": customer,
+        "threads": threads,
+        "img_urls": img_urls,
+    }
+
+
+def download_images(session, base_url: str, img_urls: list[str], out_dir: Path) -> list[str]:
+    """Descarga las imagenes a out_dir y devuelve las rutas locales guardadas.
+    Solo guarda lo que el servidor responde como image/* (descarta no-imagenes)."""
+    saved: list[str] = []
+    if not img_urls:
+        return saved
+    out_dir.mkdir(parents=True, exist_ok=True)
+    for i, src in enumerate(img_urls, 1):
+        full = urljoin(base_url, src)
+        try:
+            r = session.get(full, timeout=60)
+            r.raise_for_status()
+        except requests.RequestException:
+            continue
+        ctype = r.headers.get("Content-Type", "").split(";")[0].strip().lower()
+        if ctype and not ctype.startswith("image/"):
+            continue
+        name = Path(urlparse(full).path).name
+        if not name or not IMG_EXT_RE.search(name):
+            ext = CT_EXT.get(ctype, ".img")
+            name = f"adjunto{ext}"
+        path = out_dir / f"{i:02d}_{name}"
+        path.write_bytes(r.content)
+        saved.append(str(path))
+    return saved
+
+
 # --- principal ------------------------------------------------------------
+
+def ticket_detail(session, base_url: str, mid: str, mname: str, args,
+                  folders_wanted: list[str]) -> int:
+    """Resuelve un ticket por numero/URL, muestra su contenido completo y
+    descarga sus imagenes. Soporta --json y --out."""
+    pending = active_folders(session, base_url, mid, folders_wanted)
+    conv_url = resolve_ticket_url(session, base_url, mid, args.ticket, pending)
+    if not conv_url:
+        print(f"No encontre el ticket '{args.ticket}' en la casilla '{mname}'. "
+              f"Pasa la URL /conversation/<id> directamente con --ticket.", file=sys.stderr)
+        return 1
+
+    det = fetch_detalle(session, base_url, conv_url)
+
+    num = str(args.ticket).lstrip("#").strip() or "ticket"
+    if args.out:
+        out_dir = Path(args.out).expanduser()
+    else:
+        out_dir = Path(__file__).resolve().parent / "descargas" / num
+    saved = download_images(session, base_url, det["img_urls"], out_dir)
+
+    if args.json:
+        det["imagenes"] = saved
+        print(json.dumps(det, ensure_ascii=False, indent=2))
+        return 0
+
+    print(f"Ticket #{num}  ·  {det['subject']}")
+    if det["customer"]:
+        print(f"Cliente: {det['customer']}")
+    print(f"URL: {det['url']}")
+    print(f"Mensajes: {len(det['threads'])}  ·  imagenes: {len(saved)}")
+    for i, th in enumerate(det["threads"], 1):
+        cab = "  ·  ".join(x for x in (th["author"], th["date"]) if x)
+        print(f"\n--- mensaje {i}{('  ·  ' + cab) if cab else ''} ---")
+        print(th["text"] or "(sin texto)")
+    if saved:
+        print("\nImagenes descargadas:")
+        for p in saved:
+            print(f"  {p}")
+    elif det["img_urls"]:
+        print("\n(Se detectaron imagenes pero no se pudieron descargar.)")
+    return 0
+
 
 def main(argv: list[str] | None = None) -> int:
     for stream in (sys.stdout, sys.stderr):
@@ -249,6 +433,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--json", action="store_true", help="emite la lista como JSON.")
     parser.add_argument("--detalle", action="store_true", help="agrega una descripcion corta por ticket (1 GET extra c/u).")
     parser.add_argument("--limit", type=int, default=None, help="procesa como maximo N solicitudes.")
+    parser.add_argument("--ticket", help="numero (o URL) de un ticket: muestra su contenido COMPLETO y descarga las imagenes.")
+    parser.add_argument("--out", help="carpeta donde guardar las imagenes del ticket (por defecto descargas/<numero> junto a la skill).")
     args = parser.parse_args(argv)
 
     if requests is None or BeautifulSoup is None:
@@ -275,6 +461,10 @@ def main(argv: list[str] | None = None) -> int:
     try:
         login(session, url, email, password)
         mid, mname = find_mailbox(session, url, mailbox_name)
+
+        if args.ticket:
+            return ticket_detail(session, url, mid, mname, args, folders_wanted)
+
         folders = active_folders(session, url, mid, folders_wanted)
         if not folders:
             print(f"No encontre carpetas pendientes {folders_wanted} en la casilla '{mname}'.",
