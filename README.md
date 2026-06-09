@@ -14,10 +14,11 @@ templates, ejemplos o scripts de apoyo).
 | [`definir-spec`](definir-spec/) | 1.0.1 | Convierte una historia de usuario (o un bug) en una especificación, validando asunciones una a una. Incluye templates, ejemplo y generador de PDF. |
 | [`delegar-codigo`](delegar-codigo/) | 1.0.0 | Rol orquestador: delega el código de un cambio a un subagente codificador (no escribe código ni tests directamente). |
 | [`delegar-test`](delegar-test/) | 1.0.0 | Rol subagente de pruebas: escribe/edita solo tests que validan el comportamiento corregido y corre la suite. |
-| [`iniciar-solicitud`](iniciar-solicitud/) | 1.0.1 | Arranque de una solicitud: higiene de git + análisis de solo lectura; crea la rama de trabajo recién tras aprobación. |
+| [`iniciar-solicitud`](iniciar-solicitud/) | 1.1.0 | Arranque de una solicitud: higiene de git + análisis de solo lectura; crea la rama de trabajo recién tras aprobación. Si ya hay otra solicitud en curso, deriva a `worktree` para trabajar en paralelo sin checkout. |
 | [`leer-solicitudes-freescout`](leer-solicitudes-freescout/) | 1.1.0 | Lista por scraping (solo lectura) las solicitudes pendientes de una casilla de FreeScout (por defecto "SOL - Fabrica"); con `--ticket` trae el contenido completo de un ticket y descarga sus imagenes; credenciales globales en un `config.env` junto a la skill. |
 | [`leer-tareas-outline`](leer-tareas-outline/) | 1.0.0 | Lee un documento de Outline (wiki) vía `documents.info` para obtener las tareas pendientes de reuniones; token global en un `config.env` junto a la skill. |
 | [`revisar-coderabbit`](revisar-coderabbit/) | 1.0.0 | Triaje y cierre de las observaciones de CodeRabbit en un PR a partir de su URL. |
+| [`worktree`](worktree/) | 1.0.0 | Trabajar tareas en paralelo con git worktree (sin stash): crea, lista, elimina y limpia worktrees con la convención `T#<num>-<nombre-corto>`; incluye script PowerShell de apoyo. |
 
 ## Estructura de una skill
 

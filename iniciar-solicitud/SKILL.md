@@ -1,7 +1,7 @@
 ---
 name: iniciar-solicitud
 metadata:
-  version: "1.0.1"
+  version: "1.1.0"
 description: >-
   Arranque de una nueva solicitud: higiene de git + análisis (solo lectura).
   Verifica la rama actual; si no es la rama base (main/master) hace checkout a
@@ -25,7 +25,29 @@ git rev-parse --abbrev-ref HEAD
 ```
 
 - Si ya estás en la rama base (`main` o `master`) → seguir al paso 3 (pull).
-- Si estás en cualquier otra rama → paso 2.
+- Si estás en **otra rama** (una `T#...`) → esta carpeta ya tiene una solicitud en
+  curso. **No hacer checkout a ciegas.** Preguntar cómo seguir y elegir una de tres
+  salidas:
+
+  > Estás en `T#<...>`. Esta nueva solicitud, ¿es **(1)** continuación del mismo
+  > trabajo, **(2)** una solicitud nueva que reemplaza el contexto actual, o
+  > **(3)** una solicitud nueva **en paralelo** (mantienes ambas a la vez)?
+
+  1. **Continuación del mismo trabajo** → quedarte en esta rama, **no** cambiar
+     nada, e ir directo al análisis (paso 4).
+  2. **Nueva, reemplaza el contexto actual** (ya terminaste/abandonas la actual en
+     esta carpeta) → **rama nueva desde la base**: paso 2 (checkout a la base) → 3
+     (pull) → 5 (crear `T#<num>-<slug>`).
+  3. **Nueva, en paralelo** → **NO** hacer checkout: cambiar de rama aquí le movería
+     el piso a la otra consola/editor que usa esta carpeta (mismo working tree,
+     mismo `HEAD`). Usar la skill **`worktree`**: crear una carpeta hermana con la
+     rama nueva (`git worktree add ../<repo>-T<num> -b "T#<num>-<slug>" origin/main`)
+     y abrir la consola/editor **en esa carpeta nueva**; allí se vuelve a invocar
+     `iniciar-solicitud` sobre su propio working tree. Si la skill `worktree` no
+     está disponible, crear el worktree con ese comando a mano.
+
+  Ante la duda, **preguntar antes de hacer checkout**: en los casos 1 y 3 el
+  checkout es destructivo.
 
 La rama base de este repo es **`main`** (remoto `origin/main`). Si el repo usara
 `master`, aplicar lo mismo sobre `master`. Para resolverla sin asumir:
@@ -98,3 +120,5 @@ Convención del nombre:
 - Esta skill **no** hace commits ni push. Solo prepara rama y trae cambios.
 - Sobre esta rama de trabajo se ejecuta luego la implementación delegada
   (subagentes de código y de pruebas).
+- Para trabajar **varias solicitudes en paralelo** sin pisarse, ver la skill
+  **`worktree`** (una carpeta por solicitud sobre el mismo `.git`).
