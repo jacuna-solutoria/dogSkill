@@ -1,0 +1,6 @@
+# Credenciales locales: nunca commitear el token de Outline.
+config.env
+
+# Cache de Python.
+__pycache__/
+*.pyc
