@@ -1,10 +1,10 @@
 ---
 name: leer-solicitudes-freescout
 metadata:
-  version: "1.0.0"
+  version: "1.0.1"
 description: >-
   Lee por scraping (solo lectura) las solicitudes/tickets PENDIENTES de una
-  casilla de FreeScout, por defecto "SOL Fabrica". Inicia sesion, recorre las
+  casilla de FreeScout, por defecto "SOL - Fabrica". Inicia sesion, recorre las
   carpetas activas (No asignado / Propio / Asignado) y lista cada solicitud
   (numero, asunto, cliente, etiquetas, carpeta y URL). Las credenciales viven
   junto a la skill en un `config.env` (global, sirve para cualquier proyecto) que
@@ -15,7 +15,7 @@ description: >-
 # Leer solicitudes pendientes desde FreeScout
 
 Esta skill scrapea (HTML, **solo lectura**) una casilla de **FreeScout** y lista
-sus **solicitudes pendientes**. Por defecto revisa la casilla **"SOL Fabrica"**.
+sus **solicitudes pendientes**. Por defecto revisa la casilla **"SOL - Fabrica"**.
 No escribe nada en FreeScout ni en ningun otro sistema y no descarga adjuntos.
 
 Es **global**: las credenciales se guardan **junto a la skill**, asi el mismo
@@ -56,7 +56,7 @@ No interactivo (evita poner la clave en el historial del shell; prefiere el modo
 interactivo):
 
 ```
-python configurar.py --url https://mesa.ejemplo.com --email user@ejemplo.com --password <clave> --mailbox "SOL Fabrica"
+python configurar.py --url https://mesa.ejemplo.com --email user@ejemplo.com --password <clave> --mailbox "SOL - Fabrica"
 ```
 
 **Nunca** imprimas la clave en el chat ni en logs.
