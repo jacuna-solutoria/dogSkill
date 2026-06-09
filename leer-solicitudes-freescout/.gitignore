@@ -1,0 +1,6 @@
+# Credenciales locales: nunca commitear el acceso a FreeScout.
+config.env
+
+# Cache de Python.
+__pycache__/
+*.pyc
