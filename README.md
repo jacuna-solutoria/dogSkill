@@ -18,7 +18,7 @@ templates, ejemplos o scripts de apoyo).
 | [`leer-solicitudes-freescout`](leer-solicitudes-freescout/) | 1.1.0 | Lista por scraping (solo lectura) las solicitudes pendientes de una casilla de FreeScout (por defecto "SOL - Fabrica"); con `--ticket` trae el contenido completo de un ticket y descarga sus imagenes; credenciales globales en un `config.env` junto a la skill. |
 | [`leer-tareas-outline`](leer-tareas-outline/) | 1.0.0 | Lee un documento de Outline (wiki) vía `documents.info` para obtener las tareas pendientes de reuniones; token global en un `config.env` junto a la skill. |
 | [`revisar-coderabbit`](revisar-coderabbit/) | 1.0.0 | Triaje y cierre de las observaciones de CodeRabbit en un PR a partir de su URL. |
-| [`worktree`](worktree/) | 1.0.0 | Trabajar tareas en paralelo con git worktree (sin stash): crea, lista, elimina y limpia worktrees con la convención `T#<num>-<nombre-corto>`; incluye script PowerShell de apoyo. |
+| [`worktree`](worktree/) | 1.1.0 | Trabajar tareas en paralelo con git worktree (sin stash): crea, lista, elimina y limpia worktrees con la convención `T#<num>-<nombre-corto>`; abre una consola nueva para el usuario en la carpeta (`wt`→PowerShell→`cmd`) sin que el agente haga `cd`; incluye script PowerShell de apoyo. |
 
 ## Estructura de una skill
 

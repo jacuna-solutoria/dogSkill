@@ -2,6 +2,13 @@
 
 Todas las versiones de esta skill. Formato basado en [SemVer](https://semver.org/lang/es/): `MAJOR.MINOR.PATCH`.
 
+## 1.1.0 - 2026-06-09
+- El agente ya no hace `cd` al worktree (revolvía su contexto): al crear uno se
+  **abre una consola nueva para el usuario** en la carpeta, probando en orden
+  `wt` (Windows Terminal) → PowerShell → `cmd`. Nueva función `Open-WorktreeConsole`,
+  `New-Worktree` la llama por defecto (opt-out con `-NoConsole`). Documentado el
+  uso de `git -C <ruta>` para operar el worktree sin moverse.
+
 ## 1.0.0 - 2026-06-09
 - Versión inicial: crear, listar, eliminar y limpiar git worktrees para trabajar
   tareas en paralelo, con la convención de rama `T#<num>-<nombre-corto>`,

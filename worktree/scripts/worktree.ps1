@@ -3,6 +3,7 @@
 # Luego:  New-Worktree -Numero 1234 -Slug "login-con-correo"
 #         Get-Worktrees
 #         Remove-Worktree -Numero 1234
+#         Open-WorktreeConsole -Path ..\miapp-T1234   # abre una consola en la carpeta
 
 function Get-RepoRoot {
     $root = git rev-parse --show-toplevel 2>$null
@@ -17,6 +18,57 @@ function Get-BaseBranch {
     return 'main'
 }
 
+function Open-WorktreeConsole {
+    # Abre una consola NUEVA para el usuario, ya parada en la carpeta del worktree.
+    # Asi el agente NO tiene que hacer 'cd' (que le revuelve el contexto): el agente
+    # se queda donde estaba y, si necesita tocar el worktree, usa 'git -C <ruta>'.
+    # Orden de preferencia exigido: 1) Windows Terminal (wt)  2) PowerShell  3) cmd.
+    [CmdletBinding()]
+    param([Parameter(Mandatory)][string] $Path)
+
+    if (-not (Test-Path $Path)) { throw "No existe la carpeta: $Path" }
+    $full = (Resolve-Path $Path).Path
+
+    # 1) Windows Terminal: ventana nueva (-w -1) con la carpeta como directorio inicial (-d).
+    $wt = Get-Command wt -ErrorAction SilentlyContinue
+    if ($wt) {
+        try {
+            Start-Process -FilePath wt -ArgumentList '-w', '-1', '-d', $full -ErrorAction Stop
+            Write-Host "Consola abierta en Windows Terminal: $full" -ForegroundColor Green
+            return
+        } catch {
+            Write-Host "Windows Terminal no abrio ($($_.Exception.Message)); pruebo PowerShell." -ForegroundColor Yellow
+        }
+    }
+
+    # 2) PowerShell: pwsh 7 si existe, si no Windows PowerShell. Start-Process fija el cwd.
+    $ps = Get-Command pwsh -ErrorAction SilentlyContinue
+    if (-not $ps) { $ps = Get-Command powershell -ErrorAction SilentlyContinue }
+    if ($ps) {
+        try {
+            Start-Process -FilePath $ps.Source -ArgumentList '-NoExit' -WorkingDirectory $full -ErrorAction Stop
+            Write-Host "Consola abierta en $($ps.Name): $full" -ForegroundColor Green
+            return
+        } catch {
+            Write-Host "PowerShell no abrio ($($_.Exception.Message)); pruebo cmd." -ForegroundColor Yellow
+        }
+    }
+
+    # 3) cmd: ultimo recurso. /K mantiene la ventana abierta.
+    $cmd = Get-Command cmd -ErrorAction SilentlyContinue
+    if ($cmd) {
+        try {
+            Start-Process -FilePath cmd -ArgumentList '/K' -WorkingDirectory $full -ErrorAction Stop
+            Write-Host "Consola abierta en cmd: $full" -ForegroundColor Green
+            return
+        } catch {
+            Write-Host "cmd no abrio ($($_.Exception.Message))." -ForegroundColor Yellow
+        }
+    }
+
+    Write-Host "No encontre wt, PowerShell ni cmd. Abre una consola a mano en: $full" -ForegroundColor Yellow
+}
+
 function New-Worktree {
     [CmdletBinding()]
     param(
@@ -24,6 +76,7 @@ function New-Worktree {
         [Parameter(Mandatory)][string] $Slug,
         [string]   $Base,        # base explicita; si se omite, usa origin/<base> tras fetch
         [switch]   $SkipFetch,   # no hacer git fetch antes de crear el worktree
+        [switch]   $NoConsole,   # no abrir una consola nueva en la carpeta del worktree
         # Archivos/carpetas ignorados por git que la app necesita para correr y
         # que hay que copiar desde el repo oficial al worktree nuevo.
         # NO incluir .venv ni node_modules: esos se regeneran por carpeta.
@@ -58,6 +111,9 @@ function New-Worktree {
 
     Write-Host "Worktree listo: $dir  (rama $branch desde $Base)" -ForegroundColor Green
     Write-Host "Recuerda: crea su propio .venv y usa un puerto distinto para el dev server." -ForegroundColor Cyan
+
+    # Abre la consola del usuario en la carpeta nueva (el agente NO hace cd).
+    if (-not $NoConsole) { Open-WorktreeConsole -Path $dir }
 }
 
 function Get-Worktrees {

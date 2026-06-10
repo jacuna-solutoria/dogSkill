@@ -1,7 +1,7 @@
 ---
 name: worktree
 metadata:
-  version: "1.0.0"
+  version: "1.1.0"
 description: >-
   Trabajar dos o más tareas/tickets en paralelo con git worktree, sin git stash
   ni cambiar de rama: materializa cada rama en una carpeta hermana que comparte
@@ -57,9 +57,28 @@ C:\dev\
 └── miapp-T1234\     ← tarea B (rama T#1234-...)  ← carpeta nueva, independiente
 ```
 
-Abre una segunda ventana de terminal/editor en `miapp-T1234` y trabajas la tarea
-B sin tocar nada de la A. Cada carpeta tiene su propio estado de archivos y su
-propia rama; el historial y los commits son compartidos.
+Trabajas la tarea B en `miapp-T1234` sin tocar nada de la A. Cada carpeta tiene su
+propio estado de archivos y su propia rama; el historial y los commits son
+compartidos.
+
+> **El agente NO hace `cd` a la carpeta del worktree.** Cambiar el directorio de
+> trabajo a mitad de sesión le revuelve el contexto (rutas, archivos abiertos) y
+> confunde a los subagentes. En su lugar se **abre una consola nueva para el
+> usuario** ya parada en la carpeta (ver más abajo). El agente se queda donde
+> estaba; si necesita operar sobre el worktree, usa `git -C ../miapp-T1234 ...`
+> en vez de moverse.
+
+### Abrir la consola del usuario en la carpeta nueva
+
+Al crear un worktree se levanta automáticamente una consola en su carpeta,
+probando en este **orden de preferencia**:
+
+1. **Windows Terminal** (`wt`) → ventana nueva con la carpeta como directorio inicial.
+2. **PowerShell** (`pwsh` 7 si está; si no, Windows PowerShell) → ventana nueva en la carpeta.
+3. **cmd** → último recurso.
+
+Lo hace el script de apoyo (`New-Worktree`, o `Open-WorktreeConsole` por separado);
+ver sección 6. Si ninguna está disponible, avisa la ruta para abrirla a mano.
 
 ## 3. Comandos del día a día
 
@@ -91,6 +110,10 @@ de verdad quieres descartar.
    copies `.venv` ni `node_modules`: se regeneran por carpeta (rutas absolutas).
 5. **Puertos del dev server.** Si levantas dos servidores a la vez, usa puertos
    distintos (ej. `--port 5009` vs `--port 5010`) para que no choquen.
+6. **El agente no se cambia de carpeta.** No hagas `cd` al worktree: abre una
+   **consola aparte** para el usuario (`wt` → PowerShell → `cmd`) y, para los
+   comandos de git que el agente necesite sobre esa carpeta, usa `git -C <ruta>`.
+   Así no se confunde el contexto de la sesión ni el de otros subagentes.
 
 ## 5. Limpiar al terminar
 
@@ -109,14 +132,21 @@ ignorados desde el repo oficial. Cárgalo en la sesión con `. .\scripts\worktre
 (dot-source) y luego:
 
 ```powershell
-New-Worktree -Numero 1234 -Slug "login-con-correo"   # crea ../<repo>-T1234 desde la base (copia .env por defecto)
+New-Worktree -Numero 1234 -Slug "login-con-correo"   # crea ../<repo>-T1234 desde la base, copia .env y ABRE una consola en la carpeta
 New-Worktree -Numero 1234 -Slug "login-con-correo" -Config '.env','config.local.json'   # copia varios
+New-Worktree -Numero 1234 -Slug "login-con-correo" -NoConsole   # crea sin abrir consola
 Get-Worktrees                                         # = git worktree list
 Remove-Worktree -Numero 1234                          # elimina la carpeta y referencias
+Open-WorktreeConsole -Path ..\miapp-T1234            # abre una consola en una carpeta ya existente
 ```
 
 `-Config` recibe la lista de archivos/carpetas ignorados que la app necesita
 (por defecto `.env`); omite `.venv` y `node_modules`.
+
+`New-Worktree` **abre una consola nueva en la carpeta del worktree** al terminar
+(orden `wt` → PowerShell → `cmd`); usa `-NoConsole` para evitarlo. `Open-WorktreeConsole`
+hace solo eso, útil para reabrir una consola en un worktree que ya existe. El
+agente nunca hace `cd`: esta consola es **para el usuario**.
 
 Son un atajo; los comandos `git worktree` directos siempre funcionan igual.
 
