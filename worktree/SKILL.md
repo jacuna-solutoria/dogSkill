@@ -1,15 +1,17 @@
 ---
 name: worktree
 metadata:
-  version: "1.1.0"
+  version: "1.2.0"
 description: >-
   Trabajar dos o más tareas/tickets en paralelo con git worktree, sin git stash
   ni cambiar de rama: materializa cada rama en una carpeta hermana que comparte
   el mismo .git. Cubre crear, listar, eliminar y limpiar worktrees con la
-  convención de rama T#<num>-<nombre-corto>, más las cosas a cuidar en Windows
-  (.venv y .env por carpeta, puertos del dev server, carpetas no anidadas).
-  Usar cuando llega un cambio urgente mientras trabajas otra cosa, o cuando se
-  pida "trabajar en paralelo", "git worktree", "otra rama sin perder contexto".
+  convención de rama T#<num>-<nombre-corto>, copia a la carpeta nueva los archivos
+  que la app necesita (.env) y el análisis previo (`analisis.md`) para no
+  re-analizar, más las cosas a cuidar en Windows (.venv por carpeta, puertos del
+  dev server, carpetas no anidadas). Usar cuando llega un cambio urgente mientras
+  trabajas otra cosa, o cuando se pida "trabajar en paralelo", "git worktree",
+  "otra rama sin perder contexto".
 ---
 
 # worktree — varias ramas en paralelo sin stash
@@ -80,6 +82,24 @@ probando en este **orden de preferencia**:
 Lo hace el script de apoyo (`New-Worktree`, o `Open-WorktreeConsole` por separado);
 ver sección 6. Si ninguna está disponible, avisa la ruta para abrirla a mano.
 
+### El análisis viaja con el worktree (`analisis.md`)
+
+Cuando el worktree nace de una solicitud ya analizada, el análisis previo lo
+escribió `solicitud-analisis` en un **`analisis.md`** en la carpeta original. Ese
+archivo es de **esa** carpeta, no de la nueva; para que el trabajo en la consola
+nueva **no re-analice**, `New-Worktree` lo **copia** a la carpeta del worktree
+(igual que copia `.env`) y lo deja como *handoff*:
+
+- La consola nueva abre con el `analisis.md` listo a mano → se arranca directo en
+  **`solicitud-ejecucion`**, sin repetir higiene ni análisis (ya viajaron en el
+  archivo y la rama `T#<num>` ya existe).
+- `analisis.md` es **scratch**: `New-Worktree` lo agrega a `.git/info/exclude`
+  (compartido por todos los worktrees), así que **no se commitea** y el trabajo lo
+  ignora porque queda fuera de los archivos versionados.
+
+Si la solicitud no pasó por `solicitud-analisis` (no hay `analisis.md`), el paso se
+omite sin error, igual que con un `.env` ausente.
+
 ## 3. Comandos del día a día
 
 ```
@@ -127,21 +147,24 @@ git worktree prune                     # limpia referencias muertas
 ## 6. Script de apoyo (opcional)
 
 `scripts/worktree.ps1` deja funciones para crear/listar/eliminar worktrees con la
-convención `T#<num>-<nombre-corto>` y **copiar los archivos de configuración**
-ignorados desde el repo oficial. Cárgalo en la sesión con `. .\scripts\worktree.ps1`
+convención `T#<num>-<nombre-corto>` y **copiar a la carpeta nueva** los archivos de
+configuración (`.env`) y el análisis previo (`analisis.md`). Cárgalo en la sesión
+con `. .\scripts\worktree.ps1`
 (dot-source) y luego:
 
 ```powershell
-New-Worktree -Numero 1234 -Slug "login-con-correo"   # crea ../<repo>-T1234 desde la base, copia .env y ABRE una consola en la carpeta
-New-Worktree -Numero 1234 -Slug "login-con-correo" -Config '.env','config.local.json'   # copia varios
+New-Worktree -Numero 1234 -Slug "login-con-correo"   # crea ../<repo>-T1234 desde la base, copia .env y analisis.md, y ABRE una consola en la carpeta
+New-Worktree -Numero 1234 -Slug "login-con-correo" -Config '.env','config.local.json'   # copia otros archivos
 New-Worktree -Numero 1234 -Slug "login-con-correo" -NoConsole   # crea sin abrir consola
 Get-Worktrees                                         # = git worktree list
 Remove-Worktree -Numero 1234                          # elimina la carpeta y referencias
 Open-WorktreeConsole -Path ..\miapp-T1234            # abre una consola en una carpeta ya existente
 ```
 
-`-Config` recibe la lista de archivos/carpetas ignorados que la app necesita
-(por defecto `.env`); omite `.venv` y `node_modules`.
+`-Config` recibe la lista de archivos que se copian de la carpeta actual a la
+nueva (por defecto `.env` y `analisis.md`); omite `.venv` y `node_modules`. Si un
+archivo de la lista no existe, se omite sin error. `analisis.md` además se agrega
+a `.git/info/exclude` para que nunca se commitee.
 
 `New-Worktree` **abre una consola nueva en la carpeta del worktree** al terminar
 (orden `wt` → PowerShell → `cmd`); usa `-NoConsole` para evitarlo. `Open-WorktreeConsole`
@@ -152,14 +175,21 @@ Son un atajo; los comandos `git worktree` directos siempre funcionan igual.
 
 ## Relación con otras skills
 
-- **`iniciar-solicitud`** define la convención de rama `T#<solicitud>-<nombre-corto>`
-  y la higiene de la base (estar en `main`/`master` actualizado). Esta skill
-  **reutiliza** esa convención para nombrar tanto la rama como la carpeta del
-  worktree; no la repitas, refiérete a ella. Diferencia clave: `iniciar-solicitud`
-  hace **checkout** sobre una sola carpeta; `worktree` materializa la rama en una
-  **carpeta aparte** para trabajar en paralelo. Si esa skill no está disponible,
-  el nombre de rama sigue siendo `T#<num>-<nombre-corto>` en kebab-case, sin
-  tildes ni espacios.
+`worktree` es el mecanismo de **aislamiento** del flujo de una solicitud
+(`solicitud-higiene` → `solicitud-analisis` → **`worktree`** si es en paralelo →
+`solicitud-ejecucion` → `solicitud-respuesta`). Se invoca cuando la decisión del
+análisis es trabajar en paralelo sin perder el contexto de la carpeta actual.
+
+- **`solicitud-higiene`** define la convención de rama `T#<solicitud>-<nombre-corto>`
+  y la higiene de la base. Esta skill **reutiliza** esa convención para nombrar la
+  rama y la carpeta del worktree; no la repitas, refiérete a ella. Diferencia clave:
+  `solicitud-higiene` hace **checkout** sobre una sola carpeta; `worktree`
+  materializa la rama en una **carpeta aparte** para trabajar en paralelo. Si esa
+  skill no está disponible, el nombre de rama sigue siendo `T#<num>-<nombre-corto>`
+  en kebab-case, sin tildes ni espacios.
+- **`solicitud-analisis`** produce el `analisis.md` que este worktree **copia** a
+  la carpeta nueva como *handoff* (ver "El análisis viaja con el worktree"), para
+  arrancar en `solicitud-ejecucion` sin re-analizar.
 - Para commitear el trabajo dentro de un worktree, usar la skill **`commit`** (el
   `.git` es el mismo, así que el commit queda en la rama de ese worktree).
 

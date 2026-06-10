@@ -1,20 +1,23 @@
 ---
 name: delegar-codigo
 metadata:
-  version: "1.0.0"
+  version: "1.1.0"
 description: >-
-  Rol orquestador/delegador para delegar el CÓDIGO de un cambio. El orquestador
-  NO escribe código fuente: delega SIEMPRE el código a un subagente codificador
-  (que actúa como dev senior de seguridad/calidad y NO toca tests) y las pruebas
-  a delegar-test (subagente distinto). Esta skill SOLO puede ser usada por un
-  agente orquestador. Usar cuando se vaya a implementar una decisión aprobada.
+  Rol que asume el AGENTE PRINCIPAL (el que chatea con el usuario) para delegar un
+  cambio: el principal es SIEMPRE el orquestador y NO escribe código ni tests.
+  Delega el código a un subagente codificador (dev senior de seguridad/calidad),
+  las pruebas a delegar-test, y la revisión a delegar-calidad y delegar-seguridad;
+  con los hallazgos, delega las correcciones a NUEVOS subagentes codificadores.
+  Usar cuando se vaya a implementar una decisión aprobada.
 ---
 
 # Orquestador / delegador de código
 
-Esta skill es **solo para el rol orquestador/delegador**. Un subagente
-codificador o de pruebas NO la invoca. El orquestador **nunca usa Edit/Write
-sobre código fuente de la aplicación**.
+El **orquestador es siempre el agente principal** (el que chatea con el usuario):
+asume este rol, **no** se invoca ni se spawnea un orquestador aparte. Ningún
+subagente (codificador, de pruebas, de calidad o de seguridad) usa esta skill: es
+la guía del principal para repartir el trabajo. El orquestador **nunca usa
+Edit/Write sobre código fuente de la aplicación**: delega SIEMPRE.
 
 ## Qué hace el orquestador (y qué no)
 
@@ -31,14 +34,20 @@ Prohibido:
 
 ## Por qué se separan código y pruebas
 
-Si el mismo agente que escribe el código también escribe el test, puede
-manipular el test para que pase sin corregir el problema real. Por eso:
+Si el mismo agente que escribe el código también escribe el test —o se revisa a
+sí mismo—, puede manipularlo para que pase sin corregir el problema real. Por eso
+cada responsabilidad es un subagente distinto:
 - **Un subagente** aplica el cambio de código (esta skill).
 - **Un subagente DISTINTO** crea/edita las pruebas → `delegar-test`.
+- **Subagentes DISTINTOS y solo lectura** revisan calidad y seguridad →
+  `delegar-calidad` y `delegar-seguridad`. Quien escribió el código no se revisa
+  a sí mismo.
 
 Regla de aislamiento estricta:
 - Un **agente codificador NO puede modificar tests**.
 - Un **agente de pruebas NO puede modificar código de la app**.
+- Los **revisores (calidad/seguridad) NO editan**: solo reportan hallazgos; las
+  correcciones las aplica un **nuevo** subagente codificador.
 
 ## Tarea central del orquestador
 
@@ -96,6 +105,31 @@ código ni de tests:
    invoca un **nuevo** subagente codificador para que aplique las correcciones.
 6. **No commit ni push sin autorización explícita.**
 
+## Revisión de calidad y seguridad (antes de commitear)
+
+Con el código y los tests verdes, el orquestador **delega la revisión** a dos
+subagentes distintos, **solo lectura** y en paralelo:
+
+- **`delegar-calidad`** — revisor de calidad.
+- **`delegar-seguridad`** — revisor de seguridad.
+
+Con los hallazgos:
+
+1. El orquestador **no los corrige él**. Delega cada corrección a un **nuevo
+   subagente codificador** (esta skill), pasándole el hallazgo como contexto
+   acotado (archivo:línea, qué y por qué).
+2. Si una corrección de seguridad necesita ajustar/añadir tests, eso va al
+   subagente de pruebas (`delegar-test`), nunca al codificador.
+3. Tras corregir, **re-revisa** con nuevos subagentes de calidad/seguridad hasta
+   que no queden hallazgos abiertos, **o** se justifique explícitamente por qué un
+   hallazgo no aplica.
+4. Recién con calidad y seguridad en verde se procede al commit (ver `commit`,
+   que recuerda este gate).
+
 ## Relación con otras skills
 
 - `delegar-test` — el subagente de pruebas (rol distinto, aislado).
+- `delegar-calidad` — el subagente revisor de calidad (solo lectura).
+- `delegar-seguridad` — el subagente revisor de seguridad (solo lectura).
+- `commit` — antes de commitear recuerda confirmar que el cambio pasó calidad y
+  seguridad.

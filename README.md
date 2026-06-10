@@ -8,17 +8,21 @@ templates, ejemplos o scripts de apoyo).
 
 | Skill | Versión | Qué hace |
 |-------|---------|----------|
-| [`analizar-solicitud`](analizar-solicitud/) | 1.0.1 | Analiza una solicitud (clasifica y detalla, solo lectura) y, si corresponde, la implementa en una rama y entrega por consola el commit y el texto para el cliente. |
-| [`commit`](commit/) | 1.0.1 | Crea un commit de git con formato de 3 mensajes (`-m`), con push opcional. |
+| [`commit`](commit/) | 1.1.0 | Crea un commit de git con formato de 3 mensajes (`-m`), con push opcional; antes de commitear código recuerda el gate de pruebas, calidad y seguridad. |
 | [`crear-skill`](crear-skill/) | 1.0.0 | Crea una skill nueva con el formato estándar del repo (frontmatter, CHANGELOG, fila en README) y la valida contra la spec de agentskills.io. |
 | [`definir-spec`](definir-spec/) | 1.0.1 | Convierte una historia de usuario (o un bug) en una especificación, validando asunciones una a una. Incluye templates, ejemplo y generador de PDF. |
-| [`delegar-codigo`](delegar-codigo/) | 1.0.0 | Rol orquestador: delega el código de un cambio a un subagente codificador (no escribe código ni tests directamente). |
+| [`delegar-calidad`](delegar-calidad/) | 1.0.0 | Rol subagente revisor de calidad (solo lectura): revisa el cambio buscando malas prácticas y entrega hallazgos priorizados, sin corregir. Subagente distinto del de seguridad. |
+| [`delegar-codigo`](delegar-codigo/) | 1.1.0 | Rol del agente principal como orquestador: NO escribe código ni tests, delega código (codificador), pruebas (`delegar-test`) y revisión (`delegar-calidad`/`delegar-seguridad`), y delega las correcciones a nuevos codificadores. |
+| [`delegar-seguridad`](delegar-seguridad/) | 1.0.0 | Rol subagente revisor de seguridad (solo lectura): revisa el cambio siguiendo OWASP y entrega hallazgos por severidad, sin corregir. Subagente distinto del de calidad. |
 | [`delegar-test`](delegar-test/) | 1.0.0 | Rol subagente de pruebas: escribe/edita solo tests que validan el comportamiento corregido y corre la suite. |
-| [`iniciar-solicitud`](iniciar-solicitud/) | 1.1.0 | Arranque de una solicitud: higiene de git + análisis de solo lectura; crea la rama de trabajo recién tras aprobación. Si ya hay otra solicitud en curso, deriva a `worktree` para trabajar en paralelo sin checkout. |
 | [`leer-solicitudes-freescout`](leer-solicitudes-freescout/) | 1.1.0 | Lista por scraping (solo lectura) las solicitudes pendientes de una casilla de FreeScout (por defecto "SOL - Fabrica"); con `--ticket` trae el contenido completo de un ticket y descarga sus imagenes; credenciales globales en un `config.env` junto a la skill. |
 | [`leer-tareas-outline`](leer-tareas-outline/) | 1.0.0 | Lee un documento de Outline (wiki) vía `documents.info` para obtener las tareas pendientes de reuniones; token global en un `config.env` junto a la skill. |
 | [`revisar-coderabbit`](revisar-coderabbit/) | 1.0.0 | Triaje y cierre de las observaciones de CodeRabbit en un PR a partir de su URL. |
-| [`worktree`](worktree/) | 1.1.0 | Trabajar tareas en paralelo con git worktree (sin stash): crea, lista, elimina y limpia worktrees con la convención `T#<num>-<nombre-corto>`; abre una consola nueva para el usuario en la carpeta (`wt`→PowerShell→`cmd`) sin que el agente haga `cd`; incluye script PowerShell de apoyo. |
+| [`solicitud-analisis`](solicitud-analisis/) | 1.0.0 | Analiza una solicitud (clasifica y detalla, solo lectura); escribe el resultado en `analisis.md` (scratch) y recomienda el siguiente paso. 2º paso del flujo de solicitud, tras `solicitud-higiene`. |
+| [`solicitud-ejecucion`](solicitud-ejecucion/) | 1.0.0 | Implementa el cambio recomendado por el análisis: crea/usa la rama `T#<num>`, aplica solo lo definido, valida y commitea (vía `commit`). 3er paso del flujo de solicitud. |
+| [`solicitud-higiene`](solicitud-higiene/) | 1.0.0 | Higiene de git al tomar una solicitud: verifica rama, pull, y maneja una solicitud en curso (continuación/reemplazo/paralelo→`worktree`). 1er paso del flujo de solicitud. |
+| [`solicitud-respuesta`](solicitud-respuesta/) | 1.0.0 | Redacta por consola el texto final al cliente y la nota de bitácora de una solicitud, sin registrar en sistemas externos. Último paso del flujo de solicitud. |
+| [`worktree`](worktree/) | 1.2.0 | Trabajar tareas en paralelo con git worktree (sin stash): crea, lista, elimina y limpia worktrees con la convención `T#<num>-<nombre-corto>`; copia `.env` y el `analisis.md` (handoff, sin commitear) a la carpeta nueva; abre una consola nueva para el usuario (`wt`→PowerShell→`cmd`) sin que el agente haga `cd`; incluye script PowerShell de apoyo. |
 
 ## Estructura de una skill
 

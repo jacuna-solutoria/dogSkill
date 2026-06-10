@@ -1,13 +1,31 @@
 ---
 name: commit
 metadata:
-  version: "1.0.1"
-description: Crear un commit de git con formato de 3 mensajes (-m), con push opcional. Usar cuando el usuario pida hacer un commit ("haz commit", "/commit", "commitea esto", "commit push"). El commit lleva un título corto, un cuerpo con los hitos modificados, y notas adicionales opcionales. Hace push a remoto solo si el usuario lo indica explícitamente.
+  version: "1.1.0"
+description: Crear un commit de git con formato de 3 mensajes (-m), con push opcional. Usar cuando el usuario pida hacer un commit ("haz commit", "/commit", "commitea esto", "commit push"). El commit lleva un título corto, un cuerpo con los hitos modificados, y notas adicionales opcionales. Antes de commitear cambios de código, recuerda al orquestador confirmar que existen pruebas (y la suite pasa) y que pasaron revisión de calidad y seguridad. Hace push a remoto solo si el usuario lo indica explícitamente.
 ---
 
 # commit
 
 Crea un commit de git usando **tres** flags `-m` con un formato estandarizado.
+
+## Antes de commitear — gate de pruebas, calidad y seguridad
+
+Si el commit incluye **cambios de código**, el orquestador (el agente principal)
+debe **confirmar** que el cambio:
+
+1. **Tiene pruebas** que cubren el comportamiento corregido y la **suite pasa**
+   (las escribe el subagente de pruebas, `delegar-test`). Si el cambio no tiene
+   tests, **pedir que se creen antes** de commitear.
+2. **Pasó revisión de calidad** (`delegar-calidad`).
+3. **Pasó revisión de seguridad** (`delegar-seguridad`).
+
+En los tres casos los hallazgos deben quedar **corregidos o explícitamente
+justificados**. Si algo no se hizo, **recordarlo y hacerlo antes** de armar el
+commit (delegándolo, no resolviéndolo el orquestador por su cuenta).
+
+Es un **recordatorio**, no un bloqueo automático: no aplica a commits que no tocan
+código (documentación, configuración, contenido). Ante la duda, revisar.
 
 ## Push: commit vs commit push
 
@@ -117,3 +135,6 @@ Tarea #1234."
 - El segundo `-m` siempre lleva al menos un hito.
 - El tercer `-m` es opcional: omitirlo si no hay notas.
 - No commitear archivos no relacionados con el cambio pedido.
+- Si hay cambios de código, confirmar que existen pruebas (y la suite pasa) y que
+  pasaron revisión de calidad y seguridad antes de commitear (ver "gate de pruebas,
+  calidad y seguridad" arriba).

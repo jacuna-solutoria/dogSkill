@@ -27,7 +27,7 @@ El `name` es la pieza más restrictiva (debe coincidir con el nombre de la carpe
 - **No** empieza ni termina con guion, ni lleva guiones consecutivos (`--`).
 - **Debe ser idéntico al nombre de la carpeta** que contiene el `SKILL.md`.
 - Estilo del repo: verbo/sustantivo en español, en kebab-case
-  (ej. `commit`, `definir-spec`, `iniciar-solicitud`, `analizar-solicitud`).
+  (ej. `commit`, `definir-spec`, `solicitud-higiene`, `solicitud-analisis`).
 
 ## Paso 2 — Crear la carpeta y el `SKILL.md`
 
@@ -64,7 +64,7 @@ Reglas del frontmatter:
   relativas, un solo nivel desde el `SKILL.md`.
 - **No duplicar contenido de otras skills**: si necesitas algo que ya hace otra
   (p. ej. el formato de commit lo define `commit`, la higiene de rama
-  `iniciar-solicitud`), **referénciala** en vez de repetirla. Indica un fallback
+  `solicitud-higiene`), **referénciala** en vez de repetirla. Indica un fallback
   si esa skill pudiera no estar disponible.
 - **Ejemplos genéricos**: nunca uses datos de un cliente o proyecto real (nombres,
   IDs de ticket, rutas con el usuario, dominios específicos). Usa ejemplos neutros

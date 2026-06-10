@@ -2,6 +2,13 @@
 
 Todas las versiones de esta skill. Formato basado en [SemVer](https://semver.org/lang/es/): `MAJOR.MINOR.PATCH`.
 
+## 1.2.0 - 2026-06-10
+- `New-Worktree` ahora copia también **`analisis.md`** (el análisis previo que
+  escribe `solicitud-analisis`) a la carpeta nueva, como *handoff*: la consola
+  nueva arranca en `solicitud-ejecucion` sin re-analizar. El archivo se agrega a
+  `.git/info/exclude` para que no se commitee. Actualizadas las referencias a la
+  antigua `iniciar-solicitud` por la cadena `solicitud-*`.
+
 ## 1.1.0 - 2026-06-09
 - El agente ya no hace `cd` al worktree (revolvía su contexto): al crear uno se
   **abre una consola nueva para el usuario** en la carpeta, probando en orden

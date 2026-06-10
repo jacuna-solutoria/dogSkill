@@ -77,10 +77,12 @@ function New-Worktree {
         [string]   $Base,        # base explicita; si se omite, usa origin/<base> tras fetch
         [switch]   $SkipFetch,   # no hacer git fetch antes de crear el worktree
         [switch]   $NoConsole,   # no abrir una consola nueva en la carpeta del worktree
-        # Archivos/carpetas ignorados por git que la app necesita para correr y
-        # que hay que copiar desde el repo oficial al worktree nuevo.
+        # Archivos que se copian desde la carpeta actual al worktree nuevo:
+        #  - ignorados por git que la app necesita para correr (.env, config local).
+        #  - analisis.md: el analisis previo de la solicitud (lo escribe
+        #    solicitud-analisis); viaja al worktree para NO re-analizar.
         # NO incluir .venv ni node_modules: esos se regeneran por carpeta.
-        [string[]] $Config = @('.env')
+        [string[]] $Config = @('.env', 'analisis.md')
     )
     $root = Get-RepoRoot
     $repoName = Split-Path $root -Leaf
@@ -107,6 +109,17 @@ function New-Worktree {
         } else {
             Write-Host "No existe '$item' en el repo principal; se omite." -ForegroundColor Yellow
         }
+    }
+
+    # analisis.md es scratch: no debe commitearse en ningun worktree. El info/exclude
+    # vive en el .git comun, asi que agregarlo una vez cubre todas las carpetas.
+    $exclude = Join-Path $root '.git/info/exclude'
+    $excludeDir = Split-Path $exclude -Parent
+    if (-not (Test-Path $excludeDir)) { New-Item -ItemType Directory -Force $excludeDir | Out-Null }
+    if (-not (Test-Path $exclude)) { New-Item -ItemType File $exclude | Out-Null }
+    if ((Get-Content $exclude -ErrorAction SilentlyContinue) -notcontains 'analisis.md') {
+        Add-Content $exclude 'analisis.md'
+        Write-Host "analisis.md agregado a .git/info/exclude (no se commitea)." -ForegroundColor Green
     }
 
     Write-Host "Worktree listo: $dir  (rama $branch desde $Base)" -ForegroundColor Green
